@@ -5,6 +5,7 @@ import 'package:animestream/core/anime/providers/animepahe.dart';
 import 'package:animestream/core/anime/providers/anizone.dart';
 import 'package:animestream/core/anime/providers/gojo.dart';
 import 'package:animestream/core/anime/providers/anidb.dart';
+import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/anime/providers/animeProvider.dart';
 import 'package:animestream/core/anime/providers/providerDetails.dart';
 import 'package:animestream/core/anime/providers/providerManager.dart';
@@ -26,6 +27,7 @@ class SourceManager {
   ];
 
   final List<ProviderDetails> inbuiltSources = [
+    "Rinova",
     "AnimeOnsen",
     "AniZone",
     "Anikoto",
@@ -101,6 +103,7 @@ class SourceManager {
 }
 
 final Map<String, AnimeProvider> sources = {
+  "rinova": RinovaApiProvider(),
   "animepahe": AnimePahe(),
   "animeonsen": AnimeOnsen(),
   "gojo": Gojo(),
