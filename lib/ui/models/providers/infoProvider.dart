@@ -336,28 +336,27 @@ class InfoProvider extends ChangeNotifier {
   }
 
   Future<void> getEpisodes() async {
-      _foundName = null;
-      _epSearcherror = false;
-      try {
-        final rinova = RinovaApiProvider();
-        // Ensure rinova.getAnimeEpisodeLink returns List<Map<String, dynamic>>
-        final episodesMap = await rinova.getAnimeEpisodeLink(id.toString());
-        // Map List<Map<String, dynamic>> to List<EpisodeDetails>
-        final episodes = episodesMap.map((e) => EpisodeDetails(
-          id: e['id'] as int?, // Assuming 'id' exists and is int
-          title: e['title'] as String?,
-          url: e['url'] as String?,
-          airingTime: e['airingTime'] as String?, // Adjust type if different
-          hasDub: e['hasDub'] as bool?,
-          isFiller: e['isFiller'] as bool?,
-        )).toList();
-        paginate(episodes);
-        notifyListeners();
-      } catch (err) {
-        Logs.app.log(err.toString());
-        _epSearcherror = true;
-        notifyListeners();
-      }
+    _foundName = null;
+    _epSearcherror = false;
+    try {
+      final rinova = RinovaApiProvider();
+      // Ensure rinova.getAnimeEpisodeLink returns List<Map<String, dynamic>>
+      final episodesMap = await rinova.getAnimeEpisodeLink(id.toString());
+      // Map List<Map<String, dynamic>> to List<EpisodeDetails>
+      final episodes = episodesMap.map((e) => EpisodeDetails(
+        id: e['id'] as int?, // Assuming 'id' exists and is int
+        title: e['title'] as String?,
+        url: e['url'] as String?,
+        airingTime: e['airingTime'] as String?, // Adjust type if different
+        hasDub: e['hasDub'] as bool?,
+        isFiller: e['isFiller'] as bool?,
+      )).toList();
+      paginate(episodes);
+      notifyListeners();
+    } catch (err) {
+      Logs.app.log(err.toString());
+      _epSearcherror = true;
+      notifyListeners();
     }
   }
 
@@ -387,4 +386,5 @@ class InfoProvider extends ChangeNotifier {
     _mediaListStatus = assignItemEnum(status);
     _watched = progress;
     notifyListeners();
-    }
+  }
+}

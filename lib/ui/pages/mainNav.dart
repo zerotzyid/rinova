@@ -74,9 +74,10 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
       final title = elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '';;
       mainNavProvider.recentlyUpdatedList.add(
         Cards.animeCard(
-          0, // elem.id diganti 0 karena tidak ada id langsung dari REST API
-          elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '',
-          elem.cover, // ganti elem.thumbnail ke elem.cover
+          0, // id (int)
+          elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '', // title (String)
+          null, // afterNavigation (void Function()?)
+          elem.cover, // imageUrl (String)
           rating: (elem.rating ?? 0) / 10,
           isMobile: isMobile,
         ),
@@ -96,11 +97,16 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
     mainNavProvider.thisSeason.clear();
     mainNavProvider.thisSeasonData.forEach((item) {
       final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';;
-      mainNavProvider.thisSeason.add(Cards.animeCard(
-          0, // item.id diganti 0
-          item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
-          item.cover, // ganti item.thumbnail ke item.cover
-          rating: item.rating, isMobile: isMobile));
+      mainNavProvider.thisSeason.add(
+        Cards.animeCard(
+          0, // id (int)
+          item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '', // title (String)
+          null, // afterNavigation (void Function()?)
+          item.cover, // imageUrl (String)
+          rating: item.rating,
+          isMobile: isMobile,
+        ),
+      );
     });
 
     setState(() {});
