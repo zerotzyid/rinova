@@ -156,7 +156,7 @@ class _InfoMobileState extends State<InfoMobile> {
                                       padding: EdgeInsets.zero,
                                     ),
                                     child: Icon(
-                                      InfoProvider.getTrackerIcon(provider.mediaListStatus),
+                                      provider.getTrackerIcon(provider.mediaListStatus),
                                       color: appTheme.accentColor,
                                       size: 28,
                                     ),
