@@ -54,7 +54,8 @@ class MainNavProvider extends ChangeNotifier {
   List<AnimeCard> _recentlyUpdatedList = [];
   List<AnimeCard> _thisSeason = [];
 
-  List<RecentlyUpdatedResult> _recentlyUpdatedListData = [];
+  List<Map<String, dynamic>> _recentlyUpdatedListData = [];
+  List<Map<String, dynamic>> _recommendedListData = [];
   List<CurrentlyAiringResult> _thisSeasonData = [];
 
   bool _discoverDataLoaded = false;
@@ -95,9 +96,9 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<AnimeCard> get recommendedListData => _recommendedList;
+  List<Map<String, dynamic>> get recommendedListData => _recommendedListData;
 
-  List<AnimeCard> get recentlyUpdatedListData => _latestList;
+  List<Map<String, dynamic>> get recentlyUpdatedListData => _recentlyUpdatedListData;
 
   List<AnimeCard> get thisSeason => _thisSeason;
   set thisSeason(List<AnimeCard> value) {
@@ -170,6 +171,7 @@ class MainNavProvider extends ChangeNotifier {
       if (provider == null) return;
       final rinova = RinovaApiProvider();
       final list = await rinova.getLatest(page: 1);
+      _recentlyUpdatedListData = list;
       _latestList = [];
       for (final item in list) {
         _latestList.add(
