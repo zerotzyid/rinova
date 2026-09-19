@@ -13,6 +13,7 @@ import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/ui/models/sources.dart';
 import 'package:animestream/ui/models/snackBar.dart';
 import 'package:animestream/ui/models/widgets/cards.dart';
+import 'package:animestream/ui/models/widgets/cards/animeCard.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -102,6 +103,10 @@ class MainNavProvider extends ChangeNotifier {
   }
 
   List<CurrentlyAiringResult> get thisSeasonData => _thisSeasonData;
+
+  // Compatibility getters for discover/mainNav pages
+  List<AnimeCard> get recentlyUpdatedList => _latestList;
+  List<dynamic> get trendingList => [];
 
   // Methods
 
@@ -228,6 +233,7 @@ class MainNavProvider extends ChangeNotifier {
         rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
         episodes: int.tryParse(item['episode']?.toString() ?? '0') ?? 0,
         watchProgress: 0,
+        status: item['status'] as String? ?? '',
       ));
 
       thisSeason.add(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/anime/providers/types.dart';
+import 'package:animestream/core/anime/providers/providerDetails.dart';
 import 'package:animestream/core/app/logging.dart';
 import 'package:animestream/core/app/runtimeDatas.dart';
 import 'package:animestream/core/commons/enums.dart';

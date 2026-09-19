@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/app/runtimeDatas.dart';
 import 'package:animestream/core/data/preferences.dart';
+import 'package:animestream/core/data/types.dart';
 import 'package:animestream/ui/models/widgets/cards.dart';
 import 'package:animestream/ui/models/widgets/cards/animeCardExtended.dart';
 import 'package:animestream/ui/models/widgets/header.dart';
