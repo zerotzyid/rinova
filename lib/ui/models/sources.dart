@@ -1,131 +1,93 @@
-import 'package:animestream/core/anime/providers/anikoto.dart';
-import 'package:animestream/core/anime/providers/animegg.dart';
-import 'package:animestream/core/anime/providers/animeonsen.dart';
-import 'package:animestream/core/anime/providers/animepahe.dart';
-import 'package:animestream/core/anime/providers/anizone.dart';
-import 'package:animestream/core/anime/providers/gojo.dart';
-import 'package:animestream/core/anime/providers/anidb.dart';
 import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/anime/providers/animeProvider.dart';
 import 'package:animestream/core/anime/providers/providerDetails.dart';
-import 'package:animestream/core/anime/providers/providerManager.dart';
-import 'package:animestream/core/anime/providers/providerPlugin.dart';
-import 'package:animestream/core/anime/providers/types.dart';
-import 'package:animestream/core/app/runtimeDatas.dart';
 import 'package:flutter/material.dart';
 
-/// This Singleton manages all the sources/providers
-/// Contains the list of sources and methods to interact with them
+/// Singleton — hanya mengelola sumber/provider
 class SourceManager {
   SourceManager._();
 
   static final SourceManager instance = SourceManager._();
 
-  static final _undownloadableSources = [
-    //uses mpd which needs ffmpeg to download (makes the app bulky :< )
-    "animeonsen", "anizone"
-  ];
-
   final List<ProviderDetails> inbuiltSources = [
     "Rinova",
-    "AnimeOnsen",
-    "AniZone",
-    "Anikoto",
-    "Animegg",
-    "AniDB",
-  ]
-      .map((e) => ProviderDetails(
-          name: e,
-          identifier: e.toLowerCase() + "_inbuilt",
-          version: "0.0.0.0",
-          supportDownloads: !_undownloadableSources.contains(e.toLowerCase())))
-      .toList();
+  ].map((e) => ProviderDetails(
+        name: e,
+        identifier: e.toLowerCase() + "_inbuilt",
+        version: "0.0.0.0",
+        supportDownloads: false,
+      )).toList();
 
-  /// Used till complete migration to remote providers is complete.
   bool _useInbuiltProviders = true;
-
   bool get useInbuiltProviders => _useInbuiltProviders;
-
   set useInbuiltProviders(bool val) => _useInbuiltProviders = val;
 
   final List<ProviderDetails> _sources = [];
-
-  final ProviderPlugin _plugin = ProviderPlugin();
+  final _plugin = _EmptyPlugin();
 
   List<ProviderDetails> get sources => _sources;
 
-  void addSource(ProviderDetails source) {
-    _sources.add(source);
-  }
-
-  void addSources(List<ProviderDetails> sources) {
-    _sources.addAll(sources);
-  }
-
-  void removeSource(String identifier) {
-    _sources.removeWhere((e) => e.identifier == identifier);
-  }
+  void addSource(ProviderDetails source) => _sources.add(source);
+  void addSources(List<ProviderDetails> sources) => _sources.addAll(sources);
+  void removeSource(String identifier) => _sources.removeWhere((e) => e.identifier == identifier);
 
   Future<void> loadProviders({bool clearBeforeLoading = true}) async {
-    final providers = await ProviderManager().getSavedProviders();
     if (clearBeforeLoading) _sources.clear();
-    _sources.addAll(providers);
+    _sources.addAll(inbuiltSources);
   }
 
   Future<List<Map<String, String?>>> searchInSource(String source, String query) async {
-    if (query.isEmpty) throw new Exception("ERR_EMPTY_QUERY");
-    final searchResults = await (await _getProvider(source)).search(query);
-    return searchResults;
+    final provider = getClass(source);
+    return provider.search(query);
   }
 
   Future<List<EpisodeDetails>> getAnimeEpisodes(String source, String link, {bool dub = false}) async {
-    final info = await (await _getProvider(source)).getAnimeEpisodeLink(link, dub: dub);
-
-    /// should be list of map corresponding to values of [EpisodeList]
+    final info = await getClass(source).getAnimeEpisodeLink(link, dub: dub);
     return info.map((e) => EpisodeDetails.fromMap(e)).toList();
   }
 
   Future<void> getDownloadSources(String source, String episodeUrl, Function(List<VideoStream>, bool) updateFunction,
       {bool dub = false, String? metadata}) async {
-    await (await _getProvider(source)).getDownloadSources(episodeUrl, updateFunction, dub: dub, metadata: metadata);
+    await getClass(source).getDownloadSources(episodeUrl, updateFunction, dub: dub, metadata: metadata);
   }
 
   Future<void> getStreams(String source, String episodeId, void Function(List<VideoStream>, bool) updateFunction,
       {bool dub = false, String? metadata}) async {
-    await (await _getProvider(source)).getStreams(episodeId, updateFunction, dub: dub, metadata: metadata);
+    await getClass(source).getStreams(episodeId, updateFunction, dub: dub, metadata: metadata);
   }
 
   Future<AnimeProvider> _getProvider(String identifier) async {
-    final AnimeProvider? provider = _useInbuiltProviders ? getClass(identifier) : await _plugin.getProvider(identifier);
+    final provider = getClass(identifier);
     if (provider == null) throw Exception("$identifier Provider doesnt exist!");
     return provider;
   }
+
+  AnimeProvider getClass(String source) {
+    final match = sources.map((s) => s.identifier).contains(source)
+        ? sources.firstWhere((s) => s.identifier == source)
+        : null;
+    if (match != null) return RinovaApiProvider();
+    throw Exception("Invalid Source!");
+  }
+}
+
+class _EmptyPlugin {
+  Future<AnimeProvider?> getProvider(String provider, {String? testCode}) async => null;
 }
 
 final Map<String, AnimeProvider> sources = {
   "rinova": RinovaApiProvider(),
-  "animepahe": AnimePahe(),
-  "animeonsen": AnimeOnsen(),
-  "gojo": Gojo(),
-  "anizone": AniZone(),
-  "animegg": Animegg(),
-  "anikoto": Anikoto(),
-  "anidb": AniDB(),
 };
 
 AnimeProvider getClass(String source) {
-  final match = sources[source.replaceAll("_inbuilt", "")]; // for ignoring _inbuilt suffix
-  if (match == null) {
-    throw Exception("Invalid Source!");
-  }
-
+  final match = sources[source.replaceAll("_inbuilt", "")];
+  if (match == null) throw Exception("Invalid Source!");
   return match;
 }
 
 List<DropdownMenuEntry> getSourceDropdownList() {
   List<DropdownMenuEntry> widget = [];
   final sources = SourceManager.instance.sources;
-  int count = 0;
   for (final source in sources) {
     widget.add(
       DropdownMenuEntry(
@@ -145,7 +107,6 @@ List<DropdownMenuEntry> getSourceDropdownList() {
         ),
       ),
     );
-    count = count++;
   }
   return widget;
 }

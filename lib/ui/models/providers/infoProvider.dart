@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:animestream/core/anime/providers/providerDetails.dart';
+import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/anime/providers/types.dart';
 import 'package:animestream/core/app/logging.dart';
 import 'package:animestream/core/app/runtimeDatas.dart';
@@ -109,19 +109,9 @@ class InfoProvider extends ChangeNotifier {
             preferredProvider: val.identifier,
           ));
     }
-    // we just using this condition for validation (too lazy to add a field for it)
     sourceManager.useInbuiltProviders = selectedSource.version == "0.0.0.0";
     notifyListeners();
   }
-
-  // set previouslyUsedServer(String? val) {
-  //   if (_previouslyUsedServer == null && _previouslyUsedServer == val) return;
-  //   _previouslyUsedServer = val;
-  //   saveAnimeSpecificPreference(id.toString(), AnimeSpecificPreference(previouslyUsedServer: val)).then((v) {
-  //     notifyListeners();
-  //   });
-  //   // notifyListeners();
-  // }
 
   set viewMode(int newIndex) {
     _viewMode = newIndex;
@@ -178,11 +168,11 @@ class InfoProvider extends ChangeNotifier {
 
     _previouslyUsedServer = asp?.previouslyUsedServer;
 
-    // Set up sources.
+    // Set up sources — only RinovaApiProvider
     final sources = sourceManager.sources;
     final matchedSource = sources
         .where((e) => e.identifier == (asp?.preferredProvider ?? currentUserSettings?.preferredProvider))
-        .firstOrNull; // pick provider from last selected provider or default one
+        .firstOrNull;
     selectedSource =
         matchedSource != null ? matchedSource : (sources.isEmpty ? sourceManager.inbuiltSources[0] : sources[0]);
 
@@ -213,8 +203,7 @@ class InfoProvider extends ChangeNotifier {
     _previouslyUsedServer = server;
     _previouslyUsedServerQuality = quality;
     await saveAnimeSpecificPreference(id.toString(), AnimeSpecificPreference(previouslyUsedServer: server,
-    previouslyUsedServerQuality: quality,
-    ));
+        previouslyUsedServerQuality: quality));
     notifyListeners();
   }
 
@@ -236,7 +225,7 @@ class InfoProvider extends ChangeNotifier {
         _lastWatchedDurationMap = (await getAnimeSpecificPreference(id.toString()))?.lastWatchDuration;
       }
     } catch (err) {
-      floatingSnackBar("Couldn't fetch watch progress.");
+      floatingSnackBar("Tidak bisa fetch progress tontonan.");
       Logs.app.log(err.toString());
       if (currentUserSettings?.showErrors ?? false) {
         floatingSnackBar(err.toString(), waitForPreviousToFinish: true);
@@ -263,7 +252,7 @@ class InfoProvider extends ChangeNotifier {
           } catch (err) {
             Logs.app.log("[INFO] couldnt fetch simkl data. ${err.toString()}");
             if (currentUserSettings?.showErrors ?? false) {
-              floatingSnackBar("Couldnt fetch simkl data");
+              floatingSnackBar("Tidak bisa fetch simkl data");
             }
             return <AlternateDatabaseId>[];
           }

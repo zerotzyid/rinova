@@ -6,13 +6,13 @@ import 'package:animestream/core/commons/enums.dart';
 import 'package:animestream/core/commons/enums/loadingState.dart';
 import 'package:animestream/core/commons/types.dart';
 import 'package:animestream/core/data/watching.dart';
-import 'package:animestream/core/database/anilist/anilist.dart';
 import 'package:animestream/core/database/anilist/login.dart';
 import 'package:animestream/core/database/anilist/queries.dart';
 import 'package:animestream/core/database/anilist/types.dart';
+import 'package:animestream/core/anime/providers/rinova_api.dart';
+import 'package:animestream/ui/models/sources.dart';
 import 'package:animestream/ui/models/snackBar.dart';
 import 'package:animestream/ui/models/widgets/cards.dart';
-import 'package:animestream/ui/models/widgets/cards/animeCard.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -27,12 +27,8 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// AniList login state
   bool _loggedIn = false;
-
-  /// AniList login state
   bool get loggedIn => _loggedIn;
-
   set loggedIn(bool value) {
     _loggedIn = value;
     notifyListeners();
@@ -45,25 +41,17 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //home items
+  // Home items — dari REST API
+  AnimeListData<HomePageList> _currentlyAiring = AnimeListData(title: "Sedang Tayang");
+  AnimeListData<HomePageList> _recentlyWatched = AnimeListData(title: "Lanjutkan Menonton");
+  AnimeListData<HomePageList> _plannedList = AnimeListData(title: "Daftar Tonton");
 
-  AnimeListData<HomePageList> _currentlyAiring = AnimeListData(title: "Currently Airing");
-  AnimeListData<HomePageList> _recentlyWatched = AnimeListData(title: "Continue Watching");
-  AnimeListData<HomePageList> _plannedList = AnimeListData(title: "From Your Planned");
-
-  // bool _homePageError = false;
-  // bool _homeDataLoaded = false;
-
-  //Discover items
-
-  // lists
-  List<TrendingResult> _trendingList = [];
+  // Discover items — dari REST API
+  List<AnimeCard> _latestList = [];
   List<AnimeCard> _recommendedList = [];
   List<AnimeCard> _recentlyUpdatedList = [];
   List<AnimeCard> _thisSeason = [];
 
-  // datas
-  List<AnilistRecommendations> _recommendedListData = [];
   List<RecentlyUpdatedResult> _recentlyUpdatedListData = [];
   List<CurrentlyAiringResult> _thisSeasonData = [];
 
@@ -93,33 +81,15 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // bool get homePageError => _homePageError;
-  // set homePageError(bool value) {
-  //   _homePageError = value;
-  //   notifyListeners();
-  // }
-
-  // bool get homeDataLoaded => _homeDataLoaded;
-  // set homeDataLoaded(bool value) {
-  //   _homeDataLoaded = value;
-  //   notifyListeners();
-  // }
-
-  // Discover items
-
-  List<TrendingResult> get trendingList => _trendingList;
+  List<AnimeCard> get latestList => _latestList;
+  set latestList(List<AnimeCard> value) {
+    _latestList = value;
+    notifyListeners();
+  }
 
   List<AnimeCard> get recommendedList => _recommendedList;
   set recommendedList(List<AnimeCard> value) {
     _recommendedList = value;
-    notifyListeners();
-  }
-
-  List<AnilistRecommendations> get recommendedListData => _recommendedListData;
-
-  List<AnimeCard> get recentlyUpdatedList => _recentlyUpdatedList;
-  set recentlyUpdatedList(List<AnimeCard> value) {
-    _recentlyUpdatedList = value;
     notifyListeners();
   }
 
@@ -135,10 +105,9 @@ class MainNavProvider extends ChangeNotifier {
 
   // Methods
 
-  /// check login status and get userprofile then load lists
   Future<void> init() async {
     if (!(await isConnectedToInternet())) {
-      floatingSnackBar("You're offline. Connect to the internet and try again.", waitForPreviousToFinish: true);
+      floatingSnackBar("Anda offline. Sambungkan internet dan coba lagi.", waitForPreviousToFinish: true);
       currentlyAiring.state = LoadingState.error;
       recentlyWatched.state = LoadingState.error;
       plannedList.state = LoadingState.error;
@@ -148,41 +117,29 @@ class MainNavProvider extends ChangeNotifier {
     if (loggedIn) {
       AniListLogin()
           .getUserProfile()
-          .then((user) => {
-                _userProfile = user,
-                storedUserData = user,
-                Logs.app.log("[AUTHENTICATION] ${storedUserData?.name} Login Successful"),
-                loadListsForHome(userName: user.name),
-                // loadDiscoverItems(),
-              })
-          .catchError((err) async {
+          .then((user) {
+        _userProfile = user;
+        storedUserData = user;
+        Logs.app.log("[AUTHENTICATION] ${storedUserData?.name} Login Successful");
+        loadListsForHome(userName: user.name);
+      }).catchError((err) async {
         if (err is AnilistApiException &&
             (err.isUnauthorized || err.message.toLowerCase().contains("invalid token"))) {
-          // token is expired, invalid or has its access revoked!
-          floatingSnackBar("AniList token is invalid. Login again!");
-
+          floatingSnackBar("Token AniList tidak valid. Login lagi!");
           await AniListLogin().removeToken();
-
           loggedIn = false;
           userProfile = null;
         } else {
-          floatingSnackBar("couldnt load user profile");
+          floatingSnackBar("tidak bisa load profile pengguna");
         }
         loadListsForHome();
-
-        // lets let the discover page be lazy loaded
-        // loadDiscoverItems(); 
-
-        //return statement so that linter would shut up!
         return <void>{};
       });
     } else {
       loadListsForHome();
-      // loadDiscoverItems(); // lets let the discover page be lazy loaded
     }
   }
 
-  /// Checks if the device is connected to internet
   Future<bool> isConnectedToInternet() async {
     try {
       final result = await InternetAddress.lookup('google.com');
@@ -195,185 +152,129 @@ class MainNavProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetch the trending list from Anilist API
-  Future<void> getTrendingList() async {
-    final list = await Anilist().getTrending();
-    _trendingList = list.sublist(0, 20);
-  }
-
-  /// Fetch the recommended list from Anilist API
-  Future<void> getRecommended() async {
-    final list = await AnilistQueries().getRecommendedAnimes();
-    _recommendedListData = list;
-    for (final item in list) {
-      final title = item.title['english'] ?? item.title['romaji'] ?? '';
-      recommendedList.add(
-        Cards.animeCard(
-          item.id,
-          (currentUserSettings?.nativeTitle ?? false) ? item.title['native'] ?? title : title,
-          item.cover,
-          rating: item.rating,
-          isMobile: !tv && isAndroid,
-        ),
-      );
-    }
-    notifyListeners();
-  }
-
-  /// Fetch the recently updated list from Anilist API
-  Future<void> getRecentlyUpdated() async {
-    final list = await Anilist().recentlyUpdated();
-    //to filter out the dupes
-    Set<int> ids = {};
-    for (final elem in list) {
-      if (!ids.contains(elem.id)) {
-        final title = elem.title['english'] ?? elem.title['romaji'] ?? '';
-        ids.add(elem.id);
-        recentlyUpdatedListData.add(elem);
-        recentlyUpdatedList.add(
+  /// Fetch latest anime dari REST API
+  Future<void> getLatestList() async {
+    try {
+      final provider = SourceManager.instance.sources.isNotEmpty
+          ? SourceManager.instance.sources.first
+          : null;
+      if (provider == null) return;
+      final rinova = RinovaApiProvider();
+      final list = await rinova.getLatest(page: 1);
+      _latestList = [];
+      for (final item in list) {
+        _latestList.add(
           Cards.animeCard(
-            elem.id,
-            (currentUserSettings?.nativeTitle ?? false) ? elem.title['native'] ?? title : title,
-            elem.cover,
-            rating: (elem.rating ?? 0) / 10,
+            0,
+            item['title'] as String,
+            item['thumbnail'] as String,
+            rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
             isMobile: !tv && isAndroid,
           ),
         );
       }
+      notifyListeners();
+    } catch (e) {
+      Logs.app.log("Error fetching latest list: $e");
     }
-
-    notifyListeners();
   }
 
   void updateWatchedList(List<HomePageList> watchedList) {
-    // _recentlyWatched = watchedList;
     _recentlyWatched.items = watchedList;
     notifyListeners();
   }
 
   Future<void> loadListsForHome({String? userName}) async {
-    // reset the error state
     currentlyAiring.state = LoadingState.loading;
     recentlyWatched.state = LoadingState.loading;
     plannedList.state = LoadingState.loading;
 
-    //get all of em data
-    final futures = await Future.wait([
-      // fetches "continue watching" list
-      getWatchedList(userName: userName).onError((e, st) {
-        recentlyWatched.state = LoadingState.error;
-        Logs.app.log("Error fetching watched list. $e");
-        return <UserAnimeListItem>[];
-      }),
-
-      // fetches "aired this season" list
-      Anilist().getCurrentlyAiringAnime().onError((e, st) {
-        currentlyAiring.state = LoadingState.error;
-        Logs.app.log("Error fetching currently airing list. $e");
-        return <CurrentlyAiringResult>[];
-      }),
-
-      // fetches "from your planned" list
-      if (userName != null)
-        AnilistQueries().getUserAnimeList(userName, status: MediaStatus.PLANNING).onError((e, st) {
-          plannedList.state = LoadingState.error;
-          Logs.app.log("Error fetching planned list. $e");
-          return <UserAnimeList>[];
-        }),
-    ]);
+    // Fetch home data dari REST API
+    final rinova = RinovaApiProvider();
+    final homeData = await rinova.getHome().onError((e, st) {
+      currentlyAiring.state = LoadingState.error;
+      recentlyWatched.state = LoadingState.error;
+      plannedList.state = LoadingState.error;
+      Logs.app.log("Error fetching home data: $e");
+      return <Map<String, dynamic>>[];
+    });
 
     notifyListeners();
 
-    if (currentlyAiring.state.isError || recentlyWatched.state.isError || plannedList.state.isError) {
-      if (currentUserSettings?.enableLogging ?? false) await Logs.app.writeLog();
-    }
-
-    List<UserAnimeListItem> watched = futures[0] as List<UserAnimeListItem>;
-    if (watched.length > 40) watched = watched.sublist(0, 40);
-    recentlyWatched.items = [];
-    watched.forEach(
-      (item) => recentlyWatched.items.add(
-        HomePageList(
-          coverImage: item.coverImage,
-          id: item.id,
-          rating: item.rating,
-          title: item.title,
-          watchedEpisodeCount: item.watchProgress,
-          totalEpisodes: item.episodes,
-        ),
-      ),
-    );
-    recentlyWatched.state = LoadingState.loaded;
-
-    final List<CurrentlyAiringResult> currentlyAiringResponse = futures[1] as List<CurrentlyAiringResult>;
-    if (currentlyAiringResponse.isEmpty) return;
+    if (homeData.isEmpty) return;
 
     currentlyAiring.items = [];
-    _thisSeasonData = currentlyAiringResponse;
-    currentlyAiringResponse.forEach((item) {
+    _thisSeasonData = [];
+    for (final item in homeData) {
       currentlyAiring.items.add(
         HomePageList(
-            coverImage: item.cover,
-            id: item.id,
-            rating: item.rating,
-            title: item.title,
-            totalEpisodes: item.episodes,
-            watchedEpisodeCount: item.watchProgress),
+          coverImage: item['thumbnail'] as String,
+          id: 0,
+          rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
+          title: {
+            'english': item['title'] as String,
+            'romaji': item['title'] as String,
+          },
+          totalEpisodes: int.tryParse(item['episode']?.toString() ?? '0') ?? 0,
+          watchedEpisodeCount: 0,
+        ),
       );
       currentlyAiring.state = LoadingState.loaded;
 
-      final title = item.title['english'] ?? item.title['romaji'] ?? '';
+      _thisSeasonData.add(CurrentlyAiringResult(
+        id: 0,
+        title: {'english': item['title'] as String, 'romaji': item['title'] as String},
+        cover: item['thumbnail'] as String,
+        rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
+        episodes: int.tryParse(item['episode']?.toString() ?? '0') ?? 0,
+        watchProgress: 0,
+      ));
+
       thisSeason.add(
         Cards.animeCard(
-          item.id,
-          (currentUserSettings?.nativeTitle ?? false) ? item.title['native'] ?? title : title,
-          item.cover,
-          rating: item.rating,
+          0,
+          item['title'] as String,
+          item['thumbnail'] as String,
+          rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
         ),
       );
-    });
-
-    if (userName != null) {
-      List<UserAnimeList> pl = futures[2] as List<UserAnimeList>;
-      if (pl.isEmpty) {
-        notifyListeners();
-        return;
-      }
-      plannedList.items = [];
-      List<UserAnimeListItem> itemList = pl[0].list;
-      if (itemList.length > 25) itemList = itemList.sublist(0, 25);
-      itemList.forEach((item) {
-        plannedList.items.add(HomePageList(
-          coverImage: item.coverImage,
-          rating: item.rating,
-          title: item.title,
-          id: item.id,
-          totalEpisodes: item.episodes,
-          watchedEpisodeCount: item.watchProgress,
-        ));
-      });
-      plannedList.state = LoadingState.loaded;
     }
 
-    // I think its safe to assume that if all three lists errored out, then Anilist must be down. Unless... user is offline
-    if (recentlyWatched.state.isError &&
-        currentlyAiring.state.isError &&
-        (userName != null ? plannedList.state.isError : false)) {
+    if (userName != null) {
+      try {
+        final planning = await AnilistQueries().getUserAnimeList(userName, status: MediaStatus.PLANNING);
+        if (planning.isNotEmpty) {
+          plannedList.items = [];
+          List<UserAnimeListItem> itemList = planning[0].list;
+          if (itemList.length > 25) itemList = itemList.sublist(0, 25);
+          itemList.forEach((item) {
+            plannedList.items.add(HomePageList(
+              coverImage: item.coverImage,
+              rating: item.rating,
+              title: item.title,
+              id: item.id,
+              totalEpisodes: item.episodes,
+              watchedEpisodeCount: item.watchProgress,
+            ));
+          });
+          plannedList.state = LoadingState.loaded;
+        }
+      } catch (e) {
+        Logs.app.log("Error fetching planned list: $e");
+      }
+    }
+
+    if (currentlyAiring.state.isError && recentlyWatched.state.isError) {
       if (currentUserSettings?.showErrors ?? false)
-        floatingSnackBar("Couldn't load home data. Is Anilist down?", waitForPreviousToFinish: true);
+        floatingSnackBar("Tidak bisa load data home.", waitForPreviousToFinish: true);
     }
 
     notifyListeners();
   }
 
-  /// Load the items list for the Discover page
   Future<void> loadDiscoverItems() async {
     try {
-      await Future.wait([
-        getTrendingList(),
-        getRecentlyUpdated(),
-        getRecommended(),
-      ]);
+      await getLatestList();
       discoverDataLoaded = true;
     } catch (e) {
       Logs.app.log("Error loading discover items: $e");
@@ -390,12 +291,11 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// refresh [0 = home, 1 = discover]
   Future<void> refresh({required int refreshPage, bool fromSettings = false}) async {
     if (refreshPage != 0 && refreshPage != 1) return;
 
     if (!(await isConnectedToInternet())) {
-      floatingSnackBar("You're offline. Connect to the internet and try again.", waitForPreviousToFinish: true);
+      floatingSnackBar("Anda offline. Sambungkan internet dan coba lagi.", waitForPreviousToFinish: true);
       currentlyAiring.state = LoadingState.error;
       recentlyWatched.state = LoadingState.error;
       plannedList.state = LoadingState.error;
@@ -409,19 +309,14 @@ class MainNavProvider extends ChangeNotifier {
       return;
     }
 
-    // yes a bit expensive... we could check the userProfile nullability first. but meh
     loggedIn = await AniListLogin().isAnilistLoggedIn();
     if (loggedIn && userProfile == null) {
-      //load the userprofile and list if the user just signed in!
       userProfile = await AniListLogin().getUserProfile();
       storedUserData = userProfile;
       Logs.app.log("[AUTHENTICATION] ${storedUserData?.name} Login Successful");
       await loadListsForHome(userName: userProfile!.name);
     } else if (loggedIn && userProfile != null) {
-      //just load the list if the user was already signed in.
-      //also dont refresh the list if user just visited the settings page and were already logged in
       if (fromSettings) return;
-
       await loadListsForHome(userName: userProfile!.name);
     } else {
       await loadListsForHome();

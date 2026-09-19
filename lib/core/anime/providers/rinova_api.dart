@@ -26,6 +26,54 @@ class RinovaApiProvider extends AnimeProvider {
     }
   }
 
+  /// Fetch home page data from REST API
+  Future<List<Map<String, dynamic>>> getHome() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/home'));
+      if (res.statusCode != 200) return [];
+      final json = jsonDecode(res.body);
+      final List<dynamic> anime = json['data']?['anime'] ?? json['data'] ?? [];
+      return anime.map((item) => {
+        'title': item['title'] as String,
+        'slug': item['slug'] as String,
+        'thumbnail': item['thumbnail'] as String,
+        'rating': item['rating']?.toString() ?? '0',
+        'updateOn': item['updateOn'] ?? '',
+        'episode': item['episode'] ?? '',
+        'duration': item['duration'] ?? '',
+        'studio': item['studio'] ?? '',
+        'type': item['type'] ?? '',
+        'status': item['status'] ?? '',
+      }).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Fetch latest anime from REST API
+  Future<List<Map<String, dynamic>>> getLatest({int page = 1}) async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/latest?page=$page'));
+      if (res.statusCode != 200) return [];
+      final json = jsonDecode(res.body);
+      final List<dynamic> data = json['data'] ?? [];
+      return data.map((item) => {
+        'title': item['title'] as String,
+        'slug': item['slug'] as String,
+        'thumbnail': item['thumbnail'] as String,
+        'rating': item['rating']?.toString() ?? '0',
+        'updateOn': item['updateOn'] ?? '',
+        'episode': item['episode'] ?? '',
+        'duration': item['duration'] ?? '',
+        'studio': item['studio'] ?? '',
+        'type': item['type'] ?? '',
+        'status': item['status'] ?? '',
+      }).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   @override
   Future<List<Map<String, dynamic>>> getAnimeEpisodeLink(String aliasId, {bool dub = false}) async {
     try {

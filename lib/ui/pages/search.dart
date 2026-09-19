@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:animestream/core/anime/providers/rinova_api.dart';
 import 'package:animestream/core/app/runtimeDatas.dart';
 import 'package:animestream/core/data/preferences.dart';
-import 'package:animestream/core/data/types.dart';
-import 'package:animestream/core/database/handler/handler.dart';
-import 'package:animestream/core/database/types.dart';
 import 'package:animestream/ui/models/widgets/cards.dart';
 import 'package:animestream/ui/models/widgets/cards/animeCardExtended.dart';
 import 'package:animestream/ui/models/widgets/header.dart';
@@ -20,31 +18,29 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-  List<DatabaseSearchResult> results = [];
-  List<DatabaseSearchResult> exactMatches = [];
+  List<Map<String, String>> results = [];
+  List<Map<String, String>> exactMatches = [];
 
   TextEditingController textEditingController = TextEditingController();
 
   bool _searching = false;
-
   Timer? debounce;
 
-  final db = DatabaseHandler();
+  final _rinova = RinovaApiProvider();
 
   Future addCards(String query) async {
-    results = []; //for cleaning the UI
+    results = [];
     exactMatches = [];
-    final searchResults = await db.search(query);
-    results = []; //for removing the data from previous search invokation due to debouncing
+    final searchResults = await _rinova.search(query);
+    results = [];
     exactMatches = [];
     if (searchResults.length == 0)
       return setState(() {
         _searching = false;
       });
     searchResults.forEach((ele) {
-      final String title = ele.title['english'] ?? ele.title['romaji'] ?? '';
       results.add(ele);
-      if (query.toLowerCase() == title.toLowerCase()) {
+      if (query.toLowerCase() == (ele['name'] ?? '').toLowerCase()) {
         exactMatches.add(ele);
       }
     });
@@ -180,9 +176,6 @@ class _SearchState extends State<Search> {
                           ? 220
                           : 265,
                   crossAxisSpacing: verticalCards ? 10 : 0,
-                  // crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 6,
-                  // childAspectRatio: 1 / 1.88,
-                  // childAspectRatio: 120 / 220, //set as width and height of each child container
                   mainAxisSpacing: 15),
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
@@ -190,26 +183,25 @@ class _SearchState extends State<Search> {
               itemBuilder: (context, index) {
                 if (verticalCards) {
                   final it = results[index];
-                  final image = it.cover;
-                  final String title = it.title['english'] ?? it.title['romaji'] ?? '';
-                  final id = it.id;
+                  final image = it['imageUrl'] ?? '';
+                  final String title = it['name'] ?? '';
+                  final alias = it['alias'] ?? '';
                   return AnimeCardExtended(
-                    id: id,
-                    title: nativeTitle ? it.title['native'] ?? title : title,
+                    id: 0,
+                    title: nativeTitle ? title : title,
                     imageUrl: image,
-                    rating: it.rating ?? 0,
+                    rating: 0,
                     customWidth: 450,
-                    totalEpisodes: it.totalEpisodes,
+                    totalEpisodes: 0,
                     surfaceColor: appTheme.backgroundSubColor.withAlpha(100),
                   );
                 } else {
                   final it = exactMatch ? exactMatches[index] : results[index];
-                  final image = it.cover;
-                  final String title = it.title['english'] ?? it.title['romaji'] ?? '';
-                  final id = it.id;
+                  final image = it['imageUrl'] ?? '';
+                  final String title = it['name'] ?? '';
                   return Container(
-                    child: Cards.animeCard(id, nativeTitle ? it.title['native'] ?? title : title, image,
-                        rating: it.rating, isAnime: true, isMobile: Platform.isAndroid),
+                    child: Cards.animeCard(0, nativeTitle ? title : title, image,
+                        rating: 0, isAnime: true, isMobile: Platform.isAndroid),
                   );
                 }
               },
