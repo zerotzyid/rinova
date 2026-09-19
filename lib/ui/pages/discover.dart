@@ -219,7 +219,7 @@ class _DiscoverState extends State<Discover> {
         },
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          final trendingList = widget.mainNavProvider.trendingList;
+          final trendingList = widget.mainNavProvider._thisSeasonData;
           final moddedIndex = index % trendingList.length;
           final titles = trendingList[moddedIndex].title;
           final title = titles['english'] ?? titles['romaji'] ?? '';
@@ -247,7 +247,7 @@ class _DiscoverState extends State<Discover> {
                       child: ImageFiltered(
                         imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                         child: Image.network(
-                          trendingList[moddedIndex].banner ?? trendingList[moddedIndex].cover,
+                          trendingList[moddedIndex].cover,
                           alignment: Alignment((index - page).clamp(-1, 1).toDouble(), 1),
                           opacity: AlwaysStoppedAnimation(0.5),
                           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
@@ -301,7 +301,7 @@ class _DiscoverState extends State<Discover> {
                                 ),
                               ),
                               Text(
-                                trendingList[moddedIndex].genres.join(', '),
+                                "Kategori Tidak Tersedia", // Ganti dengan placeholder
                                 style: TextStyle(
                                     color: appTheme.textMainColor.withAlpha(145),
                                     fontFamily: 'NunitoSans',

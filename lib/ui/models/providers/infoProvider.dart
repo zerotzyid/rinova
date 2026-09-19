@@ -351,7 +351,7 @@ class InfoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  static IconData getTrackerIcon(MediaStatus? mediaListStatus) {
+  IconData getTrackerIcon(MediaStatus? mediaListStatus) {
     switch (mediaListStatus?.name) {
       case "CURRENT":
         return Icons.movie_outlined;
