@@ -37,7 +37,7 @@ class InfoProvider extends ChangeNotifier {
   List<EpisodeDetails> _epLinks = [];
   List<VideoStream> _streamSources = [];
   List<Map<String, String>> _qualities = [];
-  List<List<Map<String, dynamic>>> _visibleEpList = [];
+  List<List<EpisodeDetails>> _visibleEpList = [];
   List<AlternateDatabaseId> _altDatabases = [];
 
   int _currentPageIndex = 0;
@@ -76,7 +76,7 @@ class InfoProvider extends ChangeNotifier {
 
   List<VideoStream> get streamSources => _streamSources;
   List<Map<String, String>> get qualities => _qualities;
-  List<List<Map<String, dynamic>>> get visibleEpList => _visibleEpList;
+  List<List<EpisodeDetails>> get visibleEpList => _visibleEpList;
   List<AlternateDatabaseId> get altDatabases => _altDatabases;
   List<EpisodeDetails> get epLinks => _epLinks;
 
@@ -284,33 +284,43 @@ class InfoProvider extends ChangeNotifier {
     _epLinks = links;
     _visibleEpList.clear();
 
-    final filteredList = <Map<String, dynamic>>[];
-    int? watchedProgressIndex; // js a variable to track the last watched episode in filtered list
+    final filteredList = <EpisodeDetails>[];
+    int? watchedProgressIndex;
 
-    // filter the list if dubs are available and user needs dubs (works for subs too)
     for (int i = 0; i < _epLinks.length; i++) {
-      final hasDub = _epLinks[i].hasDub ?? false;
+      final episode = _epLinks[i];
+      final hasDub = episode.hasDub ?? false;
+
       if (!_preferDubs || hasDub) {
-        if (watched == i) watchedProgressIndex = filteredList.length;
-        filteredList.add({'realIndex': i, 'epLink': _epLinks[i]});
+        if (watched == i) {
+          watchedProgressIndex = filteredList.length;
+        }
+        // Pastikan realIndex terisi dengan benar
+        filteredList.add(EpisodeDetails(
+          episodeLink: episode.episodeLink,
+          episodeNumber: episode.episodeNumber,
+          thumbnail: episode.thumbnail,
+          episodeTitle: episode.episodeTitle,
+          hasDub: episode.hasDub,
+          isFiller: episode.isFiller,
+          metadata: episode.metadata,
+          description: episode.description,
+          realIndex: i,
+        ));
       }
     }
 
-    // Paginate to sections of 24 stuff
     for (int i = 0; i < filteredList.length; i += 24) {
-      int end = (i + 24 < filteredList.length) ? i + 24 : filteredList.length;
-      _visibleEpList.add(filteredList.sublist(i, end).map((e) => e['epLink'] as EpisodeDetails).toList());
+      final end = (i + 24 < filteredList.length) ? i + 24 : filteredList.length;
+      _visibleEpList.add(filteredList.sublist(i, end));
     }
 
     if (_visibleEpList.isEmpty) {
-      // to avoid errors ofcourse
       _visibleEpList.add([]);
       _currentPageIndex = 0;
     } else {
       _currentPageIndex = watchedProgressIndex != null ? (watchedProgressIndex ~/ 24) : 0;
     }
-
-    // _currentPageIndex = _currentPageIndex >= _visibleEpList.length ? _visibleEpList.length-1 : _currentPageIndex;
   }
 
   Future<void> _search(String query) async {

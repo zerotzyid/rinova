@@ -793,7 +793,7 @@ class _InfoMobileState extends State<InfoMobile> {
                                         return ServerSelectionBottomSheet(
                                           provider: provider,
                                           episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]
-                                              ['realIndex'],
+                                              .realIndex!,
                                           type: ServerSheetType.values[ind],
                                         );
                                       },
@@ -825,7 +825,7 @@ class _InfoMobileState extends State<InfoMobile> {
               builder: (context) {
                 return ServerSelectionBottomSheet(
                   provider: provider,
-                  episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'],
+                  episodeIndex: provider.visibleEpList[provider.currentPageIndex][index].realIndex!,
                   type: ServerSheetType.watch,
                 );
               }).then((val) {
@@ -882,7 +882,7 @@ class _InfoMobileState extends State<InfoMobile> {
                   builder: (context) {
                     return ServerSelectionBottomSheet(
                       provider: provider,
-                      episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'],
+                      episodeIndex: provider.visibleEpList[provider.currentPageIndex][index].realIndex!,
                       type: ServerSheetType.watch,
                     );
                   }).then((val) {
@@ -899,7 +899,7 @@ class _InfoMobileState extends State<InfoMobile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Opacity(
-                  opacity: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1 > provider.watched
+                  opacity: provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1 > provider.watched
                       ? 1.0
                       : 0.5,
                   child: Container(
@@ -933,7 +933,7 @@ class _InfoMobileState extends State<InfoMobile> {
                                     return ServerSelectionBottomSheet(
                                       provider: provider,
                                       episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]
-                                          ['realIndex'],
+                                          .realIndex!,
                                       type: ServerSheetType.download,
                                     );
                                   },
@@ -952,10 +952,10 @@ class _InfoMobileState extends State<InfoMobile> {
                 Padding(
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Text(
-                    "Episode ${provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1}",
+                    "Episode ${provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1}",
                     style: TextStyle(
                       color:
-                          provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1 > provider.watched
+                          provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1 > provider.watched
                               ? appTheme.textMainColor
                               : appTheme.textSubColor,
                       fontFamily: 'Poppins',
@@ -992,7 +992,7 @@ class _InfoMobileState extends State<InfoMobile> {
               margin: EdgeInsets.only(top: 10, left: 10, right: 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
-                color: (provider.visibleEpList[provider.currentPageIndex][index]['epLink'].isFiller ?? false)
+                color: (provider.visibleEpList[provider.currentPageIndex][index].isFiller ?? false)
                     ? appTheme.accentColor.withAlpha(40)
                     : appTheme.backgroundColor,
               ),
@@ -1009,7 +1009,7 @@ class _InfoMobileState extends State<InfoMobile> {
                         builder: (context) {
                           return ServerSelectionBottomSheet(
                             provider: provider,
-                            episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'],
+                            episodeIndex: provider.visibleEpList[provider.currentPageIndex][index].realIndex!,
                             type: ServerSheetType.watch,
                           );
                         });
@@ -1019,7 +1019,7 @@ class _InfoMobileState extends State<InfoMobile> {
                     child: Stack(
                       children: [
                         Opacity(
-                          opacity: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1 >
+                          opacity: provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1 >
                                   provider.watched
                               ? 1.0
                               : 0.5,
@@ -1032,7 +1032,7 @@ class _InfoMobileState extends State<InfoMobile> {
                               end: Alignment.centerRight,
                             ).createShader(bounds),
                             child: Image.network(
-                              provider.visibleEpList[provider.currentPageIndex][index]['epLink'].thumbnail ??
+                              provider.visibleEpList[provider.currentPageIndex][index].thumbnail ??
                                   provider.data.cover,
                               fit: BoxFit.cover,
                               width: 165,
@@ -1060,9 +1060,9 @@ class _InfoMobileState extends State<InfoMobile> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Episode ${provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1}",
+                                  "Episode ${provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1}",
                                   style: TextStyle(
-                                    color: provider.visibleEpList[provider.currentPageIndex][index]['realIndex'] + 1 >
+                                    color: provider.visibleEpList[provider.currentPageIndex][index].realIndex! + 1 >
                                             provider.watched
                                         ? appTheme.textMainColor
                                         : appTheme.textSubColor,
@@ -1072,7 +1072,7 @@ class _InfoMobileState extends State<InfoMobile> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (provider.visibleEpList[provider.currentPageIndex][index]['epLink'].isFiller ??
+                                if (provider.visibleEpList[provider.currentPageIndex][index].isFiller ??
                                     false)
                                   Text(
                                     "filler",
@@ -1093,7 +1093,7 @@ class _InfoMobileState extends State<InfoMobile> {
                                         return ServerSelectionBottomSheet(
                                           provider: provider,
                                           episodeIndex: provider.visibleEpList[provider.currentPageIndex][index]
-                                              ['realIndex'],
+                                              .realIndex!,
                                           type: ServerSheetType.download,
                                         );
                                       },
@@ -1115,7 +1115,7 @@ class _InfoMobileState extends State<InfoMobile> {
                 ),
               ),
             ),
-            if (provider.watched > provider.visibleEpList[provider.currentPageIndex][index]['realIndex'])
+            if (provider.watched > provider.visibleEpList[provider.currentPageIndex][index].realIndex!)
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(

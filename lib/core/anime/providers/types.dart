@@ -99,6 +99,9 @@ class EpisodeDetails {
   /// Additional data for processing if required in getStreams function
   final String? metadata;
 
+  /// Original index in the provider's list
+  final int? realIndex;
+
   EpisodeDetails({
     required this.episodeLink,
     required this.episodeNumber,
@@ -108,6 +111,7 @@ class EpisodeDetails {
     this.isFiller = false,
     this.metadata = null,
     this.description = null,
+    this.realIndex,
   });
 
   Map<String, dynamic> toMap() {
@@ -120,6 +124,7 @@ class EpisodeDetails {
       'isFiller': isFiller,
       'metadata': metadata,
       'description': description,
+      'realIndex': realIndex,
     };
   }
 
@@ -143,6 +148,7 @@ class EpisodeDetails {
           : null,
       metadata: map['metadata'] != null ? map['metadata'] as String : null,
       description: map['description'] as String?,
+      realIndex: map['realIndex'] as int?,
     );
   }
 
