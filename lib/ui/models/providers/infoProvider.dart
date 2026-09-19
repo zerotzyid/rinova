@@ -329,38 +329,17 @@ class InfoProvider extends ChangeNotifier {
   }
 
   Future<void> getEpisodes() async {
-    _foundName = null;
-    _epSearcherror = false;
-    try {
-      String searchTitle = data.title['english'] ?? data.title['romaji'] ?? '';
-      if (_manualSearchQuery != null) {
-        searchTitle = _manualSearchQuery!;
-      }
-      await _search(searchTitle);
-      notifyListeners();
-    } catch (err) {
-      Logs.app.log(err.toString());
-
-      // try again with romaji title if english title failed
-
-      final hasEnglishTitle = data.title['english'] != null;
-      final didUseManualQuery = _manualSearchQuery != null;
-
-      if (hasEnglishTitle && !didUseManualQuery) {
-        // try once more with romaji title if english title failed
-        try {
-          await _search(data.title['romaji'] ?? '');
-          notifyListeners();
-          return;
-        } catch (e) {
-          Logs.app.log(e.toString());
-        }
-      }
-
-      _epSearcherror = true;
-      notifyListeners();
-      if (currentUserSettings!.showErrors != null && currentUserSettings!.showErrors!) {
-        floatingSnackBar(err.toString());
+      _foundName = null;
+      _epSearcherror = false;
+      try {
+        final rinova = RinovaApiProvider();
+        final episodes = await rinova.getAnimeEpisodeLink(id.toString());
+        paginate(episodes);
+        notifyListeners();
+      } catch (err) {
+        Logs.app.log(err.toString());
+        _epSearcherror = true;
+        notifyListeners();
       }
     }
   }

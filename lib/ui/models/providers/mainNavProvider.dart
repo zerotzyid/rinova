@@ -95,7 +95,9 @@ class MainNavProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<RecentlyUpdatedResult> get recentlyUpdatedListData => _recentlyUpdatedListData;
+  List<AnimeCard> get recommendedListData => _recommendedList;
+
+  List<AnimeCard> get recentlyUpdatedListData => _latestList;
 
   List<AnimeCard> get thisSeason => _thisSeason;
   set thisSeason(List<AnimeCard> value) {
@@ -107,8 +109,8 @@ class MainNavProvider extends ChangeNotifier {
 
   // Compatibility getters for discover/mainNav pages
   List<AnimeCard> get recentlyUpdatedList => _latestList;
-  List<dynamic> get trendingList => [];
-  List<dynamic> get recommendedListData => [];
+  List<CurrentlyAiringResult> get trendingList => _thisSeasonData;
+  List<AnimeCard> get trendingListData => _thisSeason;
 
   // Methods
 
@@ -213,19 +215,6 @@ class MainNavProvider extends ChangeNotifier {
     currentlyAiring.items = [];
     _thisSeasonData = [];
     for (final item in homeData) {
-      currentlyAiring.items.add(
-        HomePageList(
-          coverImage: item['thumbnail'] as String,
-          id: 0,
-          rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
-          title: {
-            'english': item['title'] as String,
-            'romaji': item['title'] as String,
-          },
-          totalEpisodes: int.tryParse(item['episode']?.toString() ?? '0') ?? 0,
-          watchedEpisodeCount: 0,
-        ),
-      );
       currentlyAiring.state = LoadingState.loaded;
 
       _thisSeasonData.add(CurrentlyAiringResult(
