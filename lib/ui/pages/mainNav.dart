@@ -76,22 +76,22 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
         Cards.animeCard(
           0, // elem.id diganti 0 karena tidak ada id langsung dari REST API
           elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '',
-          elem.thumbnail, // ganti elem.coverImage ke elem.thumbnail
+          elem.cover, // ganti elem.thumbnail ke elem.cover
           rating: (elem.rating ?? 0) / 10,
           isMobile: isMobile,
         ),
       );
     });
 
-    mainNavProvider.recommendedList.clear();
-    mainNavProvider.recommendedListData.forEach((item) {
-      final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';
-      mainNavProvider.recommendedList.add(Cards.animeCard(
-          0, // item.id diganti 0
-          item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
-          item.thumbnail, // ganti item.coverImage ke item.thumbnail
-          rating: item.rating, isMobile: isMobile));
-    });
+    // mainNavProvider.recommendedList.clear(); // Hapus loop ini untuk sementara
+    // mainNavProvider.recommendedListData.forEach((item) {
+    //   final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';
+    //   mainNavProvider.recommendedList.add(Cards.animeCard(
+    //       0, // item.id diganti 0
+    //       item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
+    //       item.thumbnail, // ganti item.coverImage ke item.thumbnail
+    //       rating: item.rating, isMobile: isMobile));
+    // });
 
     mainNavProvider.thisSeason.clear();
     mainNavProvider.thisSeasonData.forEach((item) {
@@ -99,7 +99,7 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
       mainNavProvider.thisSeason.add(Cards.animeCard(
           0, // item.id diganti 0
           item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
-          item.thumbnail, // ganti item.coverImage ke item.thumbnail
+          item.cover, // ganti item.thumbnail ke item.cover
           rating: item.rating, isMobile: isMobile));
     });
 
