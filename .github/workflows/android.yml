@@ -21,6 +21,22 @@ jobs:
           flutter-version: '3.47.4'
       - run: flutter pub get
       - run: flutter clean
+      - name: Generate keystore for signing
+        run: |
+          keytool -genkeypair -v \
+            -keystore android.keystore \
+            -alias rinova \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass rinova123 -keypass rinova123 \
+            -dname "CN=RINOVA, OU=Dev, O=RINOVA, L=ID, ST=ID, C=ID"
+          mkdir -p android/key
+          mv android.keystore android/key/
+          cat > android/key.properties <<EOF
+          storeFile=../../android/key/android.keystore
+          storePassword=rinova123
+          keyAlias=rinova
+          keyPassword=rinova123
+          EOF
       - run: flutter build apk --release --target-platform android-arm
       - uses: actions/upload-artifact@v4
         with:
