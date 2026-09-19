@@ -54,7 +54,7 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
           widget.provider.epLinks[widget.episodeIndex].episodeLink,
           dub: provider.preferDubs,
           metadata: provider.epLinks[widget.episodeIndex].metadata,
-          (list, finished) {
+          (List<VideoStream> list, bool finished) {
             if (mounted)
               setState(() {
                 if (finished) {
@@ -87,7 +87,7 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
     } else {
       await src.getStreams(
           widget.provider.selectedSource.identifier, widget.provider.epLinks[widget.episodeIndex].episodeLink,
-          dub: provider.preferDubs, metadata: provider.epLinks[widget.episodeIndex].metadata, (list, finished) {
+          dub: provider.preferDubs, metadata: provider.epLinks[widget.episodeIndex].metadata, (List<VideoStream> list, bool finished) {
         if (mounted)
           setState(() {
             streamSources = streamSources + list;
