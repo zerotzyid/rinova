@@ -105,7 +105,7 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
                     element.server == widget.provider.previouslyUsedServer &&
                     element.quality == widget.provider.previouslyUsedServerQuality);
                 if (autoSelected != null) {
-                  await _navigateToPlayer(title, streamSources.indexOf(autoSelected));
+                  _navigateToPlayer(title, streamSources.indexOf(autoSelected));
                 }
               }
             }

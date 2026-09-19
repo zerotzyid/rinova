@@ -299,7 +299,14 @@ class InfoProvider extends ChangeNotifier {
     // Paginate to sections of 24 stuff
     for (int i = 0; i < filteredList.length; i += 24) {
       int end = (i + 24 < filteredList.length) ? i + 24 : filteredList.length;
-      _visibleEpList.add(filteredList.sublist(i, end));
+      _visibleEpList.add(filteredList.sublist(i, end).map((e) => EpisodeDetails(
+        id: e['realIndex'],
+        title: (e['epLink'] as EpisodeDetails).title, // Assuming EpisodeDetails has title, need to verify structure
+        url: (e['epLink'] as EpisodeDetails).url,
+        airingTime: (e['epLink'] as EpisodeDetails).airingTime,
+        hasDub: (e['epLink'] as EpisodeDetails).hasDub,
+        isFiller: (e['epLink'] as EpisodeDetails).isFiller,
+      )).toList());
     }
 
     if (_visibleEpList.isEmpty) {
@@ -333,7 +340,17 @@ class InfoProvider extends ChangeNotifier {
       _epSearcherror = false;
       try {
         final rinova = RinovaApiProvider();
-        final episodes = await rinova.getAnimeEpisodeLink(id.toString());
+        // Ensure rinova.getAnimeEpisodeLink returns List<Map<String, dynamic>>
+        final episodesMap = await rinova.getAnimeEpisodeLink(id.toString());
+        // Map List<Map<String, dynamic>> to List<EpisodeDetails>
+        final episodes = episodesMap.map((e) => EpisodeDetails(
+          id: e['id'] as int?, // Assuming 'id' exists and is int
+          title: e['title'] as String?,
+          url: e['url'] as String?,
+          airingTime: e['airingTime'] as String?, // Adjust type if different
+          hasDub: e['hasDub'] as bool?,
+          isFiller: e['isFiller'] as bool?,
+        )).toList();
         paginate(episodes);
         notifyListeners();
       } catch (err) {
@@ -370,5 +387,4 @@ class InfoProvider extends ChangeNotifier {
     _mediaListStatus = assignItemEnum(status);
     _watched = progress;
     notifyListeners();
-  }
-}
+    }

@@ -71,7 +71,7 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
     final isMobile = !mainNavProvider.tv && mainNavProvider.isAndroid;
 
     mainNavProvider.recentlyUpdatedListData.forEach((elem) {
-      final title = elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '';
+      final title = elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '';;
       mainNavProvider.recentlyUpdatedList.add(
         Cards.animeCard(
           0, // elem.id diganti 0 karena tidak ada id langsung dari REST API
@@ -95,7 +95,7 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
 
     mainNavProvider.thisSeason.clear();
     mainNavProvider.thisSeasonData.forEach((item) {
-      final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';
+      final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';;
       mainNavProvider.thisSeason.add(Cards.animeCard(
           0, // item.id diganti 0
           item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
