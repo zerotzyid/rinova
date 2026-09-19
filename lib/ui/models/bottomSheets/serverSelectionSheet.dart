@@ -55,14 +55,16 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
           dub: provider.preferDubs,
           metadata: provider.epLinks[widget.episodeIndex].metadata,
           (List<VideoStream> list, bool finished) {
+            // Cast the response to List<VideoStream>
+            List<VideoStream> castedList = list.cast<VideoStream>();
             if (mounted)
               setState(() {
                 if (finished) {
                   _isLoading = widget.type == ServerSheetType.download ? true : false;
                 }
-                streamSources = streamSources + list;
+                streamSources = streamSources + castedList;
                 if (widget.type == ServerSheetType.download) {
-                  list.forEach((element) async {
+                  castedList.forEach((element) async {
                     qualities.add({
                       'url': element.url,
                       'server': "${element.server}  ${element.backup ? "- backup" : ""}",
@@ -103,7 +105,7 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
                     element.server == widget.provider.previouslyUsedServer &&
                     element.quality == widget.provider.previouslyUsedServerQuality);
                 if (autoSelected != null) {
-                  _navigateToPlayer(title, streamSources.indexOf(autoSelected));
+                  await _navigateToPlayer(title, streamSources.indexOf(autoSelected));
                 }
               }
             }
@@ -303,7 +305,7 @@ class ServerSelectionBottomSheetState extends State<ServerSelectionBottomSheet> 
                 source: source,
                 onTap: () async {
                   await widget.provider.updatePrevUsedServer(source.server, source.quality);
-                  return _navigateToPlayer(title, index);
+                  return await _navigateToPlayer(title, index);
                 },
               );
             },
