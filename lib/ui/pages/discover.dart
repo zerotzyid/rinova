@@ -219,7 +219,7 @@ class _DiscoverState extends State<Discover> {
         },
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          final trendingList = widget.mainNavProvider._thisSeasonData;
+          final trendingList = widget.mainNavProvider.trendingList;
           final moddedIndex = index % trendingList.length;
           final titles = trendingList[moddedIndex].title;
           final title = titles['english'] ?? titles['romaji'] ?? '';

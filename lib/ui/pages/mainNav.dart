@@ -71,39 +71,40 @@ class MainNavigatorState extends State<MainNavigator> with TickerProviderStateMi
     final isMobile = !mainNavProvider.tv && mainNavProvider.isAndroid;
 
     mainNavProvider.recentlyUpdatedListData.forEach((elem) {
-      final title = elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '';;
+      final title = elem['title'] as String? ?? '';
       mainNavProvider.recentlyUpdatedList.add(
         Cards.animeCard(
-          0, // id (int)
-          elem.title['english'] ?? elem.title['romaji'] ?? elem.title['native'] ?? '', // title (String)
-          null, // afterNavigation (void Function()?)
-          elem.cover, // imageUrl (String)
-          rating: (elem.rating ?? 0) / 10,
+          0,
+          title,
+          elem['thumbnail'] as String? ?? '',
+          rating: double.tryParse(elem['rating']?.toString() ?? '0') ?? 0,
           isMobile: isMobile,
         ),
       );
     });
 
-    // mainNavProvider.recommendedList.clear(); // Hapus loop ini untuk sementara
-    // mainNavProvider.recommendedListData.forEach((item) {
-    //   final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';
-    //   mainNavProvider.recommendedList.add(Cards.animeCard(
-    //       0, // item.id diganti 0
-    //       item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '',
-    //       item.thumbnail, // ganti item.coverImage ke item.thumbnail
-    //       rating: item.rating, isMobile: isMobile));
-    // });
+    mainNavProvider.recommendedListData.forEach((item) {
+      final title = item['title'] as String? ?? '';
+      mainNavProvider.recommendedList.add(
+        Cards.animeCard(
+          0,
+          title,
+          item['thumbnail'] as String? ?? '',
+          rating: double.tryParse(item['rating']?.toString() ?? '0') ?? 0,
+          isMobile: isMobile,
+        ),
+      );
+    });
 
-    mainNavProvider.thisSeason.clear();
     mainNavProvider.thisSeasonData.forEach((item) {
-      final title = item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '';;
+      final titles = item.title;
+      final title = titles['english'] ?? titles['romaji'] ?? '';
       mainNavProvider.thisSeason.add(
         Cards.animeCard(
-          0, // id (int)
-          item.title['english'] ?? item.title['romaji'] ?? item.title['native'] ?? '', // title (String)
-          null, // afterNavigation (void Function()?)
-          item.cover, // imageUrl (String)
-          rating: item.rating,
+          item.id,
+          title,
+          item.cover,
+          rating: item.rating != null ? item.rating! / 10 : 0,
           isMobile: isMobile,
         ),
       );

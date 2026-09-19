@@ -289,24 +289,17 @@ class InfoProvider extends ChangeNotifier {
 
     // filter the list if dubs are available and user needs dubs (works for subs too)
     for (int i = 0; i < _epLinks.length; i++) {
-      final hasDub = links[i].hasDub ?? false;
+      final hasDub = _epLinks[i].hasDub ?? false;
       if (!_preferDubs || hasDub) {
         if (watched == i) watchedProgressIndex = filteredList.length;
-        filteredList.add({'realIndex': i, 'epLink': links[i]});
+        filteredList.add({'realIndex': i, 'epLink': _epLinks[i]});
       }
     }
 
     // Paginate to sections of 24 stuff
     for (int i = 0; i < filteredList.length; i += 24) {
       int end = (i + 24 < filteredList.length) ? i + 24 : filteredList.length;
-      _visibleEpList.add(filteredList.sublist(i, end).map((e) => EpisodeDetails(
-        id: e['realIndex'],
-        title: (e['epLink'] as EpisodeDetails).title, // Assuming EpisodeDetails has title, need to verify structure
-        url: (e['epLink'] as EpisodeDetails).url,
-        airingTime: (e['epLink'] as EpisodeDetails).airingTime,
-        hasDub: (e['epLink'] as EpisodeDetails).hasDub,
-        isFiller: (e['epLink'] as EpisodeDetails).isFiller,
-      )).toList());
+      _visibleEpList.add(filteredList.sublist(i, end).map((e) => e['epLink'] as EpisodeDetails).toList());
     }
 
     if (_visibleEpList.isEmpty) {
@@ -340,16 +333,12 @@ class InfoProvider extends ChangeNotifier {
     _epSearcherror = false;
     try {
       final rinova = RinovaApiProvider();
-      // Ensure rinova.getAnimeEpisodeLink returns List<Map<String, dynamic>>
       final episodesMap = await rinova.getAnimeEpisodeLink(id.toString());
-      // Map List<Map<String, dynamic>> to List<EpisodeDetails>
       final episodes = episodesMap.map((e) => EpisodeDetails(
-        id: e['id'] as int?, // Assuming 'id' exists and is int
-        title: e['title'] as String?,
-        url: e['url'] as String?,
-        airingTime: e['airingTime'] as String?, // Adjust type if different
-        hasDub: e['hasDub'] as bool?,
-        isFiller: e['isFiller'] as bool?,
+        episodeLink: e['url'] as String? ?? '',
+        episodeNumber: int.tryParse(e['episode']?.toString() ?? '0') ?? 0,
+        thumbnail: e['thumbnail'] as String?,
+        episodeTitle: e['title'] as String?,
       )).toList();
       paginate(episodes);
       notifyListeners();

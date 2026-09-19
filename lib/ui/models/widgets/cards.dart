@@ -153,7 +153,6 @@ class Cards {
     void Function()? afterNavigation,
   }) {
     return AnimeCard(
-      // context: context,
       id: id,
       title: title,
       imageUrl: imageUrl,
