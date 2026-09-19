@@ -20,6 +20,7 @@ jobs:
           channel: 'stable'
           flutter-version: '3.47.4'
       - run: flutter pub get
+      - run: flutter clean
       - run: flutter build apk --release --target-platform android-arm
       - uses: actions/upload-artifact@v4
         with:
