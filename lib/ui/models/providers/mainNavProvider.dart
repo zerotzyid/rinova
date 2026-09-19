@@ -6,6 +6,7 @@ import 'package:animestream/core/commons/enums.dart';
 import 'package:animestream/core/commons/enums/loadingState.dart';
 import 'package:animestream/core/commons/types.dart';
 import 'package:animestream/core/data/watching.dart';
+import 'package:animestream/core/database/anilist/anilist.dart';
 import 'package:animestream/core/database/anilist/login.dart';
 import 'package:animestream/core/database/anilist/queries.dart';
 import 'package:animestream/core/database/anilist/types.dart';
@@ -107,6 +108,7 @@ class MainNavProvider extends ChangeNotifier {
   // Compatibility getters for discover/mainNav pages
   List<AnimeCard> get recentlyUpdatedList => _latestList;
   List<dynamic> get trendingList => [];
+  List<dynamic> get recommendedListData => [];
 
   // Methods
 
